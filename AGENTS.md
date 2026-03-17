@@ -55,17 +55,33 @@ bootstrap_secret = base64url(token + fingerprint)  ← 展示给运维人员
 
 **Beacon 端启动时，运维人员输入 bootstrap_secret：**
 
+连接分为两个阶段。阶段一通过 HTTPS `fetch()` 验证证书指纹并获取证书；阶段二使用获取的证书作为 CA 建立 WSS 连接。这样设计是因为 Bun 的 WebSocket 客户端不支持 `checkServerIdentity`，只有 `fetch()` 支持。
+
 ```
-Beacon 发起 WSS 连接
+阶段一：验证指纹，获取证书
+
+Beacon 向 Control 发起 HTTPS fetch（GET /cert）
 ↓
-TLS 握手：不验证 CA 链，而是验证证书指纹是否匹配 bootstrap_secret 中的 fingerprint
-↓  ← 证书验证通过 = 确认对端是持有该私钥的 Control
+fetch() 的 tls 选项中通过 checkServerIdentity 验证证书指纹
+是否匹配 bootstrap_secret 中的 fingerprint
+↓  ← 指纹匹配 = 确认对端是持有该私钥的 Control
+Control 返回自签名证书 PEM
+
+阶段二：建立 WSS 连接
+
+Beacon 发起 WSS 连接（wss://control/ws）
+tls 选项中将阶段一获取的证书设为 ca，serverName 设为证书的 CN
+↓
+TLS 握手：验证服务端证书是否被 ca 信任，CN 是否匹配 serverName
+↓
 TLS 1.3 ECDHE 协商临时会话密钥（PFS）
 ↓
 应用层：Beacon 发送 auth token，Control 验证
 ↓
 bootstrap_secret 可以从内存中销毁，后续流量由 ECDHE 派生的临时密钥保护
 ```
+
+Control 的 WSS 服务通过 `Bun.serve()` 同时处理阶段一的 HTTPS 请求和阶段二的 WebSocket 升级，共用同一个端口。自签名证书生成时使用固定的 CN（如 `c2-mcp-control`）。
 
 ## 目录结构
 
