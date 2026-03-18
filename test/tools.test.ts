@@ -2,7 +2,6 @@ import { test, expect, describe } from "bun:test";
 import { executeInfo } from "../tools/info.ts";
 import { executeReadFile } from "../tools/read_file.ts";
 import { executeShell } from "../tools/shell.ts";
-import { executeGrep } from "../tools/grep.ts";
 
 describe("executeInfo", () => {
     test("returns device info", async () => {
@@ -41,26 +40,5 @@ describe("executeShell", () => {
             command: "echo err >&2",
         });
         expect(result.stderr.trim()).toBe("err");
-    });
-});
-
-describe("executeGrep", () => {
-    test("finds pattern in files", async () => {
-        const result = await executeGrep({ cwd: ".", pattern: "c2-mcp" });
-        expect(result).toContain("package.json");
-    });
-
-    test("returns no matches for empty dir", async () => {
-        const dir = await import("node:fs/promises").then((fs) =>
-            fs.mkdtemp("/tmp/grep-test-"),
-        );
-        const result = await executeGrep({
-            cwd: dir,
-            pattern: "anything",
-        });
-        expect(result).toBe("(no matches)");
-        await import("node:fs/promises").then((fs) =>
-            fs.rm(dir, { recursive: true }),
-        );
     });
 });

@@ -23,7 +23,6 @@ tools：
 - `list_devices()`
 - `read_file(device, path)`
 - `shell(device, cwd, command)`
-- `grep(device, cwd, pattern)`
 
 特别的，设置一个 `info` 工具，用于收集 Beacon 运行环境的基本信息，包括平台、架构、系统版本、系统时间等等。这些信息在 Beacon 首次连接 Control 时一并发送，并作为 `list_devices` 的信息返回。
 

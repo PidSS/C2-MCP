@@ -2,7 +2,6 @@ import { z } from "zod";
 import { infoTool, executeInfo } from "../tools/info.ts";
 import { readFileTool, executeReadFile } from "../tools/read_file.ts";
 import { shellTool, executeShell } from "../tools/shell.ts";
-import { grepTool, executeGrep } from "../tools/grep.ts";
 import type { ToolDef } from "../tools/types.ts";
 import type { CommandRequest, CommandResponse } from "../lib/protocol.ts";
 import { logger } from "../lib/logger.ts";
@@ -22,10 +21,6 @@ const tools: Record<string, ToolEntry> = {
     shell: {
         def: shellTool,
         execute: (a) => executeShell(a as Parameters<typeof executeShell>[0]),
-    },
-    grep: {
-        def: grepTool,
-        execute: (a) => executeGrep(a as Parameters<typeof executeGrep>[0]),
     },
 };
 
