@@ -9,8 +9,4 @@ import { shellTool } from "./shell.ts";
 import type { ToolDef } from "./types.ts";
 
 /** All remote tools (executed on Beacon). */
-export const remoteTools: ToolDef[] = [
-    infoTool,
-    readFileTool,
-    shellTool,
-];
+export const remoteTools: ToolDef[] = [infoTool, readFileTool, shellTool];

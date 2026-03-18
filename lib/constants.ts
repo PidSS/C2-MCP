@@ -3,7 +3,8 @@ export const APP_VERSION = "1.0.0";
 
 export const CONTROL_CN = "c2-mcp-control";
 export const CERT_VALIDITY_DAYS = 365;
-export const COMMAND_TIMEOUT_MS = 120_000;
+export const DEFAULT_SHELL_TIMEOUT_S = 120;
+export const COMMAND_TIMEOUT_MS = 310_000; // safety net: must exceed max shell timeout (300s)
 
 export const DEFAULT_MCP_LISTEN = "localhost:4661";
 export const DEFAULT_CONTROL_LISTEN = "0.0.0.0:4662";
