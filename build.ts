@@ -26,5 +26,5 @@ await Promise.all(
                 }`,
             },
         }),
-    ])
+    ]),
 );

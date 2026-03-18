@@ -36,7 +36,7 @@ const reporter: ConsolaReporter = {
     log(logObj: LogObject, ctx: { options: ConsolaOptions }) {
         const opts = ctx.options.formatOptions;
         const args = logObj.args.map((a) =>
-            a && typeof a.stack === "string" ? a.message + "\n" + a.stack : a
+            a && typeof a.stack === "string" ? a.message + "\n" + a.stack : a,
         );
         const message = formatWithOptions(opts, ...args);
         const time = logObj.date.toLocaleTimeString();
@@ -51,8 +51,8 @@ const reporter: ConsolaReporter = {
 
         const stream =
             logObj.level < 2
-                ? ctx.options.stderr ?? process.stderr
-                : ctx.options.stdout ?? process.stdout;
+                ? (ctx.options.stderr ?? process.stderr)
+                : (ctx.options.stdout ?? process.stdout);
         stream.write(line + "\n");
     },
 };

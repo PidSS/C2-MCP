@@ -1,23 +1,32 @@
 {
-  "name": "c2-mcp",
-  "scripts": {
-    "control": "bun run control/index.ts",
-    "beacon": "bun run beacon/index.ts",
-    "build": "bun run build.ts",
-    "build:control": "bun run build.ts --control",
-    "build:beacon": "bun run build.ts --beacon"
-  },
-  "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.27.1",
-    "citty": "^0.2.1",
-    "consola": "^3.4.2",
-    "zod": "^4.3.6"
-  }
+    "name": "c2-mcp",
+    "scripts": {
+        "control": "bun run control/index.ts",
+        "beacon": "bun run beacon/index.ts",
+        "build": "bun run build.ts",
+        "build:control": "bun run build.ts --control",
+        "build:beacon": "bun run build.ts --beacon",
+        "lint": "eslint .",
+        "format": "prettier --write ."
+    },
+    "private": true,
+    "devDependencies": {
+        "@types/bun": "latest",
+        "@typescript-eslint/eslint-plugin": "^8.57.1",
+        "@typescript-eslint/parser": "^8.57.1",
+        "eslint": "^10.0.3",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.5",
+        "prettier": "^3.8.1"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.27.1",
+        "@peculiar/x509": "^1.14.3",
+        "citty": "^0.2.1",
+        "consola": "^3.4.2",
+        "zod": "^4.3.6"
+    }
 }
