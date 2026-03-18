@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { infoTool, executeInfo } from "../tools/info.ts";
+import { deviceInfoTool, executeDeviceInfo } from "../tools/info.ts";
 import { readFileTool, executeReadFile } from "../tools/read_file.ts";
 import { shellTool, executeShell } from "../tools/shell.ts";
 import type { ToolDef } from "../tools/types.ts";
@@ -12,7 +12,7 @@ interface ToolEntry {
 }
 
 const tools: Record<string, ToolEntry> = {
-    info: { def: infoTool, execute: () => executeInfo() },
+    device_info: { def: deviceInfoTool, execute: () => executeDeviceInfo() },
     read_file: {
         def: readFileTool,
         execute: (a) =>

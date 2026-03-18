@@ -1,11 +1,11 @@
 import { test, expect, describe } from "bun:test";
-import { executeInfo } from "../tools/info.ts";
+import { executeDeviceInfo } from "../tools/info.ts";
 import { executeReadFile } from "../tools/read_file.ts";
 import { executeShell } from "../tools/shell.ts";
 
-describe("executeInfo", () => {
+describe("executeDeviceInfo", () => {
     test("returns device info", async () => {
-        const info = await executeInfo();
+        const info = await executeDeviceInfo();
         expect(info.platform).toBeTruthy();
         expect(info.arch).toBeTruthy();
         expect(info.osVersion).toBeTruthy();

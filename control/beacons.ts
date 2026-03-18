@@ -54,6 +54,13 @@ export function removeBeacon(id: string): void {
     logger.info(`Beacon removed: ${id}`);
 }
 
+export function updateBeaconInfo(id: string, info: DeviceInfo): void {
+    const beacon = beacons.get(id);
+    if (beacon) {
+        beacon.info = info;
+    }
+}
+
 /**
  * Send a command to a Beacon and wait for the response.
  * Returns a promise that resolves when the Beacon replies.

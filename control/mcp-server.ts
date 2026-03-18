@@ -1,7 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { remoteTools } from "../tools/index.ts";
-import { getAllBeacons, sendCommand } from "./beacons.ts";
+import type { DeviceInfo } from "../lib/protocol.ts";
+import { getAllBeacons, sendCommand, updateBeaconInfo } from "./beacons.ts";
 import { logger } from "../lib/logger.ts";
 import { APP_NAME, APP_VERSION } from "../lib/constants.ts";
 
@@ -87,6 +88,12 @@ function createMcpServer(): McpServer {
                             isError: true,
                         };
                     }
+
+                    // Refresh cached device info on successful device_info call
+                    if (tool.name === "device_info" && resp.data) {
+                        updateBeaconInfo(device, resp.data as DeviceInfo);
+                    }
+
                     const text =
                         typeof resp.data === "string"
                             ? resp.data

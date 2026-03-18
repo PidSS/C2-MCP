@@ -1,15 +1,25 @@
+import { z } from "zod";
 import type { ToolDef } from "./types.ts";
+import type { DeviceInfo } from "../lib/protocol.ts";
 
-export const infoTool: ToolDef = {
-    name: "info",
+export const deviceInfoTool: ToolDef = {
+    name: "device_info",
     description:
-        "Collect basic information about the device's runtime environment, including platform, architecture, OS version, hostname, and current time.",
-    inputSchema: {},
+        "Collect current runtime environment info from the specified device, " +
+        "including platform, architecture, OS version, hostname, and time. " +
+        "Also refreshes the cached info returned by list_devices.",
+    inputSchema: {
+        device: z
+            .string()
+            .describe(
+                "Target device ID (use list_devices to discover available devices)",
+            ),
+    },
     remote: true,
 };
 
-/** Execute info tool on the Beacon side. */
-export async function executeInfo(): Promise<Record<string, string>> {
+/** Collect device info. Used by both the tool and beacon auth. */
+export async function executeDeviceInfo(): Promise<DeviceInfo> {
     const os = await import("node:os");
     return {
         platform: os.platform(),

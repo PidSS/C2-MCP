@@ -2,11 +2,11 @@ import { test, expect, describe } from "bun:test";
 import { dispatch } from "../beacon/executor.ts";
 
 describe("dispatch", () => {
-    test("dispatches info tool", async () => {
+    test("dispatches device_info tool", async () => {
         const resp = await dispatch({
             type: "command",
             id: "test-1",
-            tool: "info",
+            tool: "device_info",
             args: {},
         });
         expect(resp.ok).toBe(true);

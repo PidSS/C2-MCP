@@ -5,9 +5,9 @@ import type {
     AuthMessage,
     AuthResult,
     CommandRequest,
-    DeviceInfo,
 } from "../lib/protocol.ts";
 import { dispatch } from "./executor.ts";
+import { executeDeviceInfo } from "../tools/info.ts";
 import { X509Certificate } from "node:crypto";
 
 /**
@@ -52,15 +52,7 @@ export async function connectToControl(
     // --- Phase 2: WSS connection using cert as CA ---
     logger.info("Phase 2: Establishing WSS connection...");
 
-    // Collect device info for auth message
-    const os = await import("node:os");
-    const info: DeviceInfo = {
-        platform: os.platform(),
-        arch: os.arch(),
-        osVersion: os.release(),
-        hostname: os.hostname(),
-        time: new Date().toISOString(),
-    };
+    const info = await executeDeviceInfo();
 
     return new Promise<void>((resolve, reject) => {
         const wsUrl = `wss://${address}/ws`;
