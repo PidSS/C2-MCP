@@ -6,17 +6,17 @@ import { getAllBeacons, sendCommand, updateBeaconInfo } from "./beacons.ts";
 import { logger } from "../lib/logger.ts";
 import { APP_NAME, APP_VERSION } from "../lib/constants.ts";
 
-/** Handle an incoming MCP HTTP request. Stateless: each request gets a fresh transport. */
-async function handleMcpRequest(req: Request): Promise<Response> {
-    const transport = new WebStandardStreamableHTTPServerTransport();
-    await mcpServer.connect(transport);
-    return transport.handleRequest(req);
-}
-
-const mcpServer = createMcpServer();
-
-export function startMcpServer(host: string, port: number): void {
-    Bun.serve({ hostname: host, port, fetch: handleMcpRequest });
+export async function startMcpServer(host: string, port: number): Promise<void> {
+    Bun.serve({
+        hostname: host,
+        port,
+        async fetch(req) {
+            const server = createMcpServer();
+            const transport = new WebStandardStreamableHTTPServerTransport({ enableJsonResponse: true });
+            await server.connect(transport);
+            return transport.handleRequest(req);
+        },
+    });
     logger.info(`MCP server listening on http://${host}:${port}`);
 }
 

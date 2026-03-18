@@ -52,7 +52,7 @@ const main = defineCommand({
 
         // --- Start MCP HTTP Server ---
         const [mcpHost, mcpPort] = splitHostPort(args["mcp-listen"]);
-        startMcpServer(mcpHost, mcpPort);
+        await startMcpServer(mcpHost, mcpPort);
 
         // --- Start Control WSS Server ---
         const [ctrlHost, ctrlPort] = splitHostPort(args["control-listen"]);
