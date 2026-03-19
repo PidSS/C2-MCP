@@ -10,33 +10,33 @@ import {
     handleBeaconResponse,
 } from "./beacons.ts";
 import type { BeaconWSData } from "./beacons.ts";
-import {
-    DEFAULT_MCP_LISTEN,
-    DEFAULT_CONTROL_LISTEN,
-} from "../lib/constants.ts";
+import { loadConfig } from "../lib/config.ts";
 
 const main = defineCommand({
     meta: { name: "control", description: "C2-MCP Control server" },
     args: {
+        config: {
+            type: "string",
+            description: "Path to YAML config file",
+        },
         "mcp-listen": {
             type: "string",
-            default: DEFAULT_MCP_LISTEN,
             description: "MCP Server listen address (host:port)",
         },
         "control-listen": {
             type: "string",
-            default: DEFAULT_CONTROL_LISTEN,
             description: "Beacon WSS listen address (host:port)",
         },
         verbose: {
             type: "boolean",
             alias: "v",
-            default: false,
             description: "Enable verbose logging",
         },
     },
     async run({ args }) {
-        if (args.verbose) {
+        const cfg = await loadConfig(args, args.config);
+
+        if (cfg.verbose) {
             logger.level = 5; // verbose
         }
 
@@ -51,11 +51,11 @@ const main = defineCommand({
         logger.info(`Bootstrap secret: ${bootstrapSecret}`);
 
         // --- Start MCP HTTP Server ---
-        const [mcpHost, mcpPort] = splitHostPort(args["mcp-listen"]);
+        const [mcpHost, mcpPort] = splitHostPort(cfg.mcpListen);
         await startMcpServer(mcpHost, mcpPort);
 
         // --- Start Control WSS Server ---
-        const [ctrlHost, ctrlPort] = splitHostPort(args["control-listen"]);
+        const [ctrlHost, ctrlPort] = splitHostPort(cfg.controlListen);
 
         startControlServer(identity, ctrlHost, ctrlPort);
         logger.info(

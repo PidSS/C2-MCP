@@ -6,13 +6,18 @@ import { getAllBeacons, sendCommand, updateBeaconInfo } from "./beacons.ts";
 import { logger } from "../lib/logger.ts";
 import { APP_NAME, APP_VERSION } from "../lib/constants.ts";
 
-export async function startMcpServer(host: string, port: number): Promise<void> {
+export async function startMcpServer(
+    host: string,
+    port: number,
+): Promise<void> {
     Bun.serve({
         hostname: host,
         port,
         async fetch(req) {
             const server = createMcpServer();
-            const transport = new WebStandardStreamableHTTPServerTransport({ enableJsonResponse: true });
+            const transport = new WebStandardStreamableHTTPServerTransport({
+                enableJsonResponse: true,
+            });
             await server.connect(transport);
             return transport.handleRequest(req);
         },

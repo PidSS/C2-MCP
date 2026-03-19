@@ -45,7 +45,6 @@ export async function connectToControl(
     if (!certResp.ok) {
         throw new Error(`Failed to fetch certificate: ${certResp.status}`);
     }
-    const certPem = await certResp.text();
     logger.info("Phase 1 complete: certificate verified");
 
     // --- Phase 2: WSS connection ---
