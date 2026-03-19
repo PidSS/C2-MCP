@@ -5,7 +5,6 @@ import type {
     CommandResponse,
 } from "../lib/protocol.ts";
 import { logger } from "../lib/logger.ts";
-import { randomUUID } from "node:crypto";
 import { COMMAND_TIMEOUT_MS } from "../lib/constants.ts";
 
 export interface BeaconConnection {
@@ -74,7 +73,7 @@ export function sendCommand(
         return Promise.reject(new Error(`Device not found: ${beaconId}`));
     }
 
-    const id = randomUUID();
+    const id = Bun.randomUUIDv7();
     const request: CommandRequest = { type: "command", id, tool, args };
 
     return new Promise((resolve, reject) => {
