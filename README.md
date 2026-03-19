@@ -20,4 +20,4 @@ This project was created using `bun init` in bun v1.3.1. [Bun](https://bun.com) 
 - [ ] 编写 README
 - [ ] 操作桌面
 - [ ] 操作浏览器
-- [ ] 文件传输功能
+- [ ] 掉线时重连及状态恢复
