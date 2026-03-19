@@ -64,9 +64,7 @@ const main = defineCommand({
         try {
             await connectToControl(cfg.controlAddress, cfg.id, secret);
             logger.info("Beacon is running. Waiting for commands...");
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : String(err);
-            logger.error(`Failed to connect: ${message}`);
+        } catch {
             process.exit(1);
         }
     },

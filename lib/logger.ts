@@ -41,7 +41,14 @@ const reporter: ConsolaReporter = {
             a && typeof a.stack === "string" ? a.message + "\n" + a.stack : a,
         );
         const message = formatWithOptions(opts, ...args);
-        const time = logObj.date.toLocaleTimeString();
+        const d = logObj.date;
+        const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const mon = MONTHS[d.getMonth()];
+        const day = String(d.getDate()).padStart(2, "0");
+        const hh  = String(d.getHours()).padStart(2, "0");
+        const mm  = String(d.getMinutes()).padStart(2, "0");
+        const ss  = String(d.getSeconds()).padStart(2, "0");
+        const time = `[${mon} ${day} ${hh}:${mm}:${ss}]`;
         const colorFn = LEVEL_COLORS[logObj.type];
         const icon = ICONS[logObj.type] ?? "";
         const tag = logObj.tag ? `[${logObj.tag}] ` : "";

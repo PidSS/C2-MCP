@@ -77,6 +77,7 @@ export async function connectToControl(
         });
 
         let authenticated = false;
+        let authFailed = false;
 
         ws.addEventListener("message", async (event) => {
             const raw =
@@ -92,6 +93,8 @@ export async function connectToControl(
                         logger.success("Authenticated with Control");
                         resolve();
                     } else {
+                        authFailed = true;
+                        logger.error(`Auth failed: ${resp.error}`);
                         reject(new Error(`Auth failed: ${resp.error}`));
                         ws.close();
                     }
@@ -116,12 +119,11 @@ export async function connectToControl(
         });
 
         ws.addEventListener("close", (event) => {
+            if (authenticated || authFailed) return;
             logger.warn(
                 `Connection to Control closed: ${event.code} ${event.reason}`,
             );
-            if (!authenticated) {
-                reject(new Error("Connection closed before auth"));
-            }
+            reject(new Error("Connection closed before auth"));
         });
 
         ws.addEventListener("error", (event) => {

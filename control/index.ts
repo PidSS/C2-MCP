@@ -157,6 +157,7 @@ function startControlServer(
                         error: "Invalid auth token",
                     };
                     ws.sendText(JSON.stringify(resp));
+                    logger.warn(`[${data.ip}] Auth failed: invalid token`);
                     ws.close(1008, "Auth failed");
                     return;
                 }
@@ -169,6 +170,7 @@ function startControlServer(
                         error: `Device ID already connected: ${authMsg.id}`,
                     };
                     ws.sendText(JSON.stringify(resp));
+                    logger.warn(`[${data.ip}] Auth failed: duplicate ID ${authMsg.id}`);
                     ws.close(1008, "Duplicate ID");
                     return;
                 }
