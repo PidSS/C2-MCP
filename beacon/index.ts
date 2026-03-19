@@ -2,7 +2,7 @@ import { defineCommand, runMain } from "citty";
 import consola from "consola";
 import { c, logger, setVerbose } from "../lib/logger.ts";
 import { printBanner } from "../lib/banner.ts";
-import { connectToControl } from "./connection.ts";
+import { connectToControl, ConnectError } from "./connection.ts";
 import { loadConfig } from "../lib/config.ts";
 
 const main = defineCommand({
@@ -64,7 +64,16 @@ const main = defineCommand({
         try {
             await connectToControl(cfg.controlAddress, cfg.id, secret);
             logger.info("Beacon is running. Waiting for commands...");
-        } catch {
+        } catch (e) {
+            if (e instanceof ConnectError) {
+                const reason = e.kind === "secret"
+                    ? "invalid bootstrap secret"
+                    : "network error";
+                logger.error(`Failed to connect: ${reason}`);
+            } else {
+                logger.error("Failed to connect");
+            }
+            logger.debug((e as Error).message);
             process.exit(1);
         }
     },

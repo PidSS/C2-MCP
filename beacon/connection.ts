@@ -7,12 +7,28 @@ import type {
 } from "../lib/protocol.ts";
 import { dispatch } from "./executor.ts";
 import { executeDeviceInfo } from "../tools/info.ts";
-import { X509Certificate } from "node:crypto";
+import { X509Certificate, createHash } from "node:crypto";
+
+export type ConnectErrorKind = "network" | "secret";
+
+export class ConnectError extends Error {
+    constructor(
+        public readonly kind: ConnectErrorKind,
+        message: string,
+    ) {
+        super(message);
+        this.name = "ConnectError";
+    }
+}
 
 /**
  * Two-phase connection to Control.
- * Phase 1: HTTPS fetch /cert, verify fingerprint via checkServerIdentity.
- * Phase 2: WSS connect using fetched cert as CA.
+ * Phase 1: HTTPS fetch /cert (rejectUnauthorized:false), verify body PEM fingerprint.
+ * Phase 2: WSS connect using the fetched PEM as ca — pins the exact certificate.
+ *
+ * Security: attacker cannot win either way —
+ *   - return their own PEM → fingerprint mismatch → rejected in Phase 1
+ *   - return legit PEM    → Phase 2 ca rejects attacker's TLS cert
  */
 export async function connectToControl(
     address: string,
@@ -25,34 +41,23 @@ export async function connectToControl(
     logger.debug("Fetching Control certificate...");
 
     const certUrl = `https://${address}/cert`;
-    const certResp = await fetch(certUrl, {
-        tls: {
-            rejectUnauthorized: false,
-            checkServerIdentity(_hostname, cert) {
-                const x509 = new X509Certificate(cert.raw);
-                const hash = new Bun.CryptoHasher("sha256")
-                    .update(x509.raw)
-                    .digest("hex");
-                if (hash !== fingerprint) {
-                    return new Error(
-                        `Certificate fingerprint mismatch: expected ${fingerprint}, got ${hash}`,
-                    );
-                }
-            },
-        },
+    const certResp = await fetch(certUrl, { tls: { rejectUnauthorized: false } }).catch((e) => {
+        throw new ConnectError("network", e.message);
     });
 
     if (!certResp.ok) {
-        throw new Error(`Failed to fetch certificate: ${certResp.status}`);
+        throw new ConnectError("network", `Failed to fetch certificate: ${certResp.status}`);
+    }
+
+    const certPem = await certResp.text();
+    const x509 = new X509Certificate(certPem);
+    const hash = createHash("sha256").update(x509.raw).digest("hex");
+    if (hash !== fingerprint) {
+        throw new ConnectError("secret", `Certificate fingerprint mismatch: expected ${fingerprint}, got ${hash}`);
     }
     logger.debug("Certificate verified");
 
-    // --- Phase 2: WSS connection ---
-    // Bun's WebSocket doesn't support checkServerIdentity or serverName for
-    // hostname override, so we disable TLS verification here. Security relies on:
-    //   1. Phase 1 already pinned the certificate via fingerprint from bootstrap secret
-    //   2. Both phases target the same address — MITM must compromise both
-    //   3. Auth token exchange provides mutual proof of bootstrap secret possession
+    // --- Phase 2: WSS connection, pinned to the fetched certificate ---
     logger.debug("Connecting to Control...");
 
     const info = await executeDeviceInfo();
@@ -60,9 +65,7 @@ export async function connectToControl(
     return new Promise<void>((resolve, reject) => {
         const wsUrl = `wss://${address}/ws`;
         const ws = new WebSocket(wsUrl, {
-            tls: {
-                rejectUnauthorized: false,
-            },
+            tls: { ca: certPem },
         });
 
         ws.addEventListener("open", () => {
@@ -94,8 +97,7 @@ export async function connectToControl(
                         resolve();
                     } else {
                         authFailed = true;
-                        logger.error(`Auth failed: ${resp.error}`);
-                        reject(new Error(`Auth failed: ${resp.error}`));
+                        reject(new ConnectError("secret", `Auth token rejected: ${resp.error}`));
                         ws.close();
                     }
                 }
@@ -120,16 +122,12 @@ export async function connectToControl(
 
         ws.addEventListener("close", (event) => {
             if (authenticated || authFailed) return;
-            logger.warn(
-                `Connection to Control closed: ${event.code} ${event.reason}`,
-            );
-            reject(new Error("Connection closed before auth"));
+            reject(new ConnectError("network", `Connection closed before auth: ${event.code} ${event.reason}`));
         });
 
-        ws.addEventListener("error", (event) => {
-            logger.error(`WebSocket error: ${event}`);
+        ws.addEventListener("error", () => {
             if (!authenticated) {
-                reject(new Error("WebSocket connection error"));
+                reject(new ConnectError("network", "WebSocket connection error"));
             }
         });
     });
