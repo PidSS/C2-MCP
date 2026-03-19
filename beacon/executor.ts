@@ -4,7 +4,6 @@ import { readFileTool, executeReadFile } from "../tools/read_file.ts";
 import { shellTool, executeShell } from "../tools/shell.ts";
 import type { ToolDef } from "../tools/types.ts";
 import type { CommandRequest, CommandResponse } from "../lib/protocol.ts";
-import { logger } from "../lib/logger.ts";
 
 interface ToolEntry {
     def: ToolDef;
@@ -51,7 +50,6 @@ export async function dispatch(req: CommandRequest): Promise<CommandResponse> {
         return { type: "result", id: req.id, ok: true, data };
     } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
-        logger.error(`Tool ${req.tool} failed: ${message}`);
         return {
             type: "result",
             id: req.id,

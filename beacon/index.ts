@@ -66,9 +66,10 @@ const main = defineCommand({
             logger.info("Beacon is running. Waiting for commands...");
         } catch (e) {
             if (e instanceof ConnectError) {
-                const reason = e.kind === "secret"
-                    ? "invalid bootstrap secret"
-                    : "network error";
+                const reason =
+                    e.kind === "secret"
+                        ? "invalid bootstrap secret"
+                        : "network error";
                 logger.error(`Failed to connect: ${reason}`);
             } else {
                 logger.error("Failed to connect");

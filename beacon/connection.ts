@@ -1,4 +1,4 @@
-import { logger } from "../lib/logger.ts";
+import { c, logger } from "../lib/logger.ts";
 import { decodeBootstrapSecret } from "../lib/crypto.ts";
 import type {
     AuthMessage,
@@ -41,19 +41,27 @@ export async function connectToControl(
     logger.debug("Fetching Control certificate...");
 
     const certUrl = `https://${address}/cert`;
-    const certResp = await fetch(certUrl, { tls: { rejectUnauthorized: false } }).catch((e) => {
+    const certResp = await fetch(certUrl, {
+        tls: { rejectUnauthorized: false },
+    }).catch((e) => {
         throw new ConnectError("network", e.message);
     });
 
     if (!certResp.ok) {
-        throw new ConnectError("network", `Failed to fetch certificate: ${certResp.status}`);
+        throw new ConnectError(
+            "network",
+            `Failed to fetch certificate: ${certResp.status}`,
+        );
     }
 
     const certPem = await certResp.text();
     const x509 = new X509Certificate(certPem);
     const hash = createHash("sha256").update(x509.raw).digest("hex");
     if (hash !== fingerprint) {
-        throw new ConnectError("secret", `Certificate fingerprint mismatch: expected ${fingerprint}, got ${hash}`);
+        throw new ConnectError(
+            "secret",
+            `Certificate fingerprint mismatch: expected ${fingerprint}, got ${hash}`,
+        );
     }
     logger.debug("Certificate verified");
 
@@ -97,7 +105,12 @@ export async function connectToControl(
                         resolve();
                     } else {
                         authFailed = true;
-                        reject(new ConnectError("secret", `Auth token rejected: ${resp.error}`));
+                        reject(
+                            new ConnectError(
+                                "secret",
+                                `Auth token rejected: ${resp.error}`,
+                            ),
+                        );
                         ws.close();
                     }
                 }
@@ -114,20 +127,30 @@ export async function connectToControl(
             }
 
             if (req.type === "command") {
-                logger.debug(`Executing tool: ${req.tool} (${req.id})`);
+                const { tool, args } = req;
+                logger.debug(`${tool} ${c.dim(JSON.stringify(args))}`);
                 const result = await dispatch(req);
+                const status = result.ok ? "ok" : "error";
+                logger.info(`${tool} ${c.dim(req.id)} → ${status}`);
                 ws.send(JSON.stringify(result));
             }
         });
 
         ws.addEventListener("close", (event) => {
             if (authenticated || authFailed) return;
-            reject(new ConnectError("network", `Connection closed before auth: ${event.code} ${event.reason}`));
+            reject(
+                new ConnectError(
+                    "network",
+                    `Connection closed before auth: ${event.code} ${event.reason}`,
+                ),
+            );
         });
 
         ws.addEventListener("error", () => {
             if (!authenticated) {
-                reject(new ConnectError("network", "WebSocket connection error"));
+                reject(
+                    new ConnectError("network", "WebSocket connection error"),
+                );
             }
         });
     });

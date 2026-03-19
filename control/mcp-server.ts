@@ -4,6 +4,7 @@ import { remoteTools } from "../tools/index.ts";
 import type { DeviceInfo } from "../lib/protocol.ts";
 import { getAllBeacons, sendCommand, updateBeaconInfo } from "./beacons.ts";
 import { APP_NAME, APP_VERSION } from "../lib/constants.ts";
+import { c, logger } from "../lib/logger.ts";
 
 export function startMcpServer(host: string, port: number) {
     Bun.serve({
@@ -76,7 +77,15 @@ function createMcpServer(): McpServer {
                 try {
                     // Strip `device` from args before forwarding to Beacon
                     const { device: _device, ...toolArgs } = args; // eslint-disable-line @typescript-eslint/no-unused-vars
+                    logger.debug(
+                        `[${device}] ${tool.name} ${c.dim(JSON.stringify(toolArgs))}`,
+                    );
                     const resp = await sendCommand(device, tool.name, toolArgs);
+
+                    const status = resp.ok ? "ok" : "error";
+                    logger.info(
+                        `[${device}] ${tool.name} ${c.dim(resp.id)} → ${status}`,
+                    );
                     if (!resp.ok) {
                         return {
                             content: [
@@ -104,6 +113,7 @@ function createMcpServer(): McpServer {
                 } catch (err: unknown) {
                     const message =
                         err instanceof Error ? err.message : String(err);
+                    logger.info(`[${device}] ${tool.name} → error`);
                     return {
                         content: [
                             {
