@@ -1,6 +1,7 @@
 import { defineCommand, runMain } from "citty";
 import consola from "consola";
-import { logger } from "../lib/logger.ts";
+import { c, logger, setVerbose } from "../lib/logger.ts";
+import { printBanner } from "../lib/banner.ts";
 import { connectToControl } from "./connection.ts";
 import { loadConfig } from "../lib/config.ts";
 
@@ -27,10 +28,7 @@ const main = defineCommand({
     },
     async run({ args }) {
         const cfg = await loadConfig(args, args.config);
-
-        if (cfg.verbose) {
-            logger.level = 5;
-        }
+        setVerbose(cfg.verbose);
 
         if (!cfg.id) {
             logger.error("Missing required: --id");
@@ -41,16 +39,22 @@ const main = defineCommand({
             process.exit(1);
         }
 
-        logger.info(`Beacon ID: ${cfg.id}`);
-        logger.info(`Control address: ${cfg.controlAddress}`);
+        printBanner({
+            role: "beacon",
+            lines: [
+                `Beacon ID        ${c.bold(cfg.id)}`,
+                `Control Address  ${c.bold(cfg.controlAddress)}`,
+            ],
+        });
 
         let secret: string;
         if (cfg.bootstrapSecret) {
             secret = cfg.bootstrapSecret;
         } else {
             secret = await consola
-                .prompt("Enter bootstrap_secret:", { type: "text" })
+                .prompt("Enter Bootstrap Secret:", { type: "text" })
                 .then((input) => input.trim());
+            process.stdout.write("\n");
             if (typeof secret !== "string" || !secret) {
                 logger.error("No bootstrap_secret provided, exiting.");
                 process.exit(1);

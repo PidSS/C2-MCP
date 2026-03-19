@@ -22,7 +22,7 @@ export async function connectToControl(
     const { authToken, fingerprint } = decodeBootstrapSecret(bootstrapSecret);
 
     // --- Phase 1: Fetch certificate, verify fingerprint ---
-    logger.info("Phase 1: Fetching and verifying Control certificate...");
+    logger.debug("Fetching Control certificate...");
 
     const certUrl = `https://${address}/cert`;
     const certResp = await fetch(certUrl, {
@@ -45,7 +45,7 @@ export async function connectToControl(
     if (!certResp.ok) {
         throw new Error(`Failed to fetch certificate: ${certResp.status}`);
     }
-    logger.info("Phase 1 complete: certificate verified");
+    logger.debug("Certificate verified");
 
     // --- Phase 2: WSS connection ---
     // Bun's WebSocket doesn't support checkServerIdentity or serverName for
@@ -53,7 +53,7 @@ export async function connectToControl(
     //   1. Phase 1 already pinned the certificate via fingerprint from bootstrap secret
     //   2. Both phases target the same address — MITM must compromise both
     //   3. Auth token exchange provides mutual proof of bootstrap secret possession
-    logger.info("Phase 2: Establishing WSS connection...");
+    logger.debug("Connecting to Control...");
 
     const info = await executeDeviceInfo();
 
@@ -89,7 +89,7 @@ export async function connectToControl(
                 if (resp.type === "auth_result") {
                     if (resp.ok) {
                         authenticated = true;
-                        logger.info("Authenticated with Control");
+                        logger.success("Authenticated with Control");
                         resolve();
                     } else {
                         reject(new Error(`Auth failed: ${resp.error}`));

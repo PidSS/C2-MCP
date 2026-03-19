@@ -1,5 +1,6 @@
 import { defineCommand, runMain } from "citty";
-import { logger } from "../lib/logger.ts";
+import { c, logger, setVerbose } from "../lib/logger.ts";
+import { printBanner } from "../lib/banner.ts";
 import { generateIdentity, encodeBootstrapSecret } from "../lib/crypto.ts";
 import type { CryptoIdentity } from "../lib/crypto.ts";
 import type { AuthMessage, ControlMessage } from "../lib/protocol.ts";
@@ -35,32 +36,34 @@ const main = defineCommand({
     },
     async run({ args }) {
         const cfg = await loadConfig(args, args.config);
-
-        if (cfg.verbose) {
-            logger.level = 5; // verbose
-        }
+        setVerbose(cfg.verbose);
 
         // --- Generate crypto identity ---
-        logger.info("Generating crypto identity...");
+        logger.debug("Generating crypto identity...");
         const identity = await generateIdentity();
         const bootstrapSecret = encodeBootstrapSecret(
             identity.authToken,
             identity.fingerprint,
         );
-        logger.info(`Certificate fingerprint: ${identity.fingerprint}`);
-        logger.info(`Bootstrap secret: ${bootstrapSecret}`);
+        logger.debug(`Certificate fingerprint: ${identity.fingerprint}`);
 
-        // --- Start MCP HTTP Server ---
+        // --- Start servers ---
         const [mcpHost, mcpPort] = splitHostPort(cfg.mcpListen);
-        await startMcpServer(mcpHost, mcpPort);
-
-        // --- Start Control WSS Server ---
         const [ctrlHost, ctrlPort] = splitHostPort(cfg.controlListen);
 
+        startMcpServer(mcpHost, mcpPort);
         startControlServer(identity, ctrlHost, ctrlPort);
-        logger.info(
-            `Control WSS server listening on wss://${ctrlHost}:${ctrlPort}`,
-        );
+
+        printBanner({
+            role: "control",
+            lines: [
+                `${c.green("✔")} MCP Server      ${c.bold(c.underline(`http://${mcpHost}:${mcpPort}`))}`,
+                `${c.green("✔")} Control Server  ${c.bold(c.underline(`wss://${ctrlHost}:${ctrlPort}`))}`,
+                "",
+                `Bootstrap Secret:`,
+                `${c.bold(c.italic(c.blueBright(bootstrapSecret)))}`,
+            ],
+        });
     },
 });
 
@@ -93,7 +96,8 @@ function startControlServer(
             const url = new URL(req.url);
 
             if (url.pathname === "/cert" && req.method === "GET") {
-                logger.debug("Serving certificate to beacon (phase 1)");
+                const ip = server.requestIP(req)?.address ?? "unknown";
+                logger.debug(`[${ip}] Certificate requested`);
                 return new Response(identity.cert, {
                     headers: { "Content-Type": "application/x-pem-file" },
                 });
@@ -101,8 +105,9 @@ function startControlServer(
 
             // Phase 2: WebSocket upgrade
             if (url.pathname === "/ws") {
+                const ip = server.requestIP(req)?.address ?? "unknown";
                 const upgraded = server.upgrade(req, {
-                    data: { authenticated: false },
+                    data: { authenticated: false, ip },
                 });
                 if (!upgraded) {
                     return new Response("WebSocket upgrade failed", {
@@ -115,8 +120,8 @@ function startControlServer(
             return new Response("Not found", { status: 404 });
         },
         websocket: {
-            open() {
-                logger.debug("New WebSocket connection, awaiting auth...");
+            open(ws) {
+                logger.debug(`[${ws.data.ip}] WebSocket connected`);
             },
             message(ws, message) {
                 const data = ws.data!;
@@ -172,13 +177,16 @@ function startControlServer(
                 data.beaconId = authMsg.id;
                 const resp: ControlMessage = { type: "auth_result", ok: true };
                 ws.sendText(JSON.stringify(resp));
-                logger.info(`Beacon authenticated: ${authMsg.id}`);
+                logger.success(
+                    `[${data.ip} → ${authMsg.id}] Beacon authenticated`,
+                );
                 return;
             },
             close(ws) {
                 const beaconId = ws.data?.beaconId;
                 if (beaconId) {
                     removeBeacon(beaconId);
+                    logger.info(`[${beaconId}] Beacon disconnected`);
                 }
             },
         },

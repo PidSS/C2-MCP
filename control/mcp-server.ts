@@ -3,13 +3,9 @@ import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/
 import { remoteTools } from "../tools/index.ts";
 import type { DeviceInfo } from "../lib/protocol.ts";
 import { getAllBeacons, sendCommand, updateBeaconInfo } from "./beacons.ts";
-import { logger } from "../lib/logger.ts";
 import { APP_NAME, APP_VERSION } from "../lib/constants.ts";
 
-export async function startMcpServer(
-    host: string,
-    port: number,
-): Promise<void> {
+export function startMcpServer(host: string, port: number) {
     Bun.serve({
         hostname: host,
         port,
@@ -22,7 +18,6 @@ export async function startMcpServer(
             return transport.handleRequest(req);
         },
     });
-    logger.info(`MCP server listening on http://${host}:${port}`);
 }
 
 function createMcpServer(): McpServer {
@@ -123,6 +118,5 @@ function createMcpServer(): McpServer {
         );
     }
 
-    logger.info("MCP server tools registered");
     return server;
 }

@@ -8,6 +8,8 @@ import type {
 } from "consola";
 import { formatWithOptions } from "node:util";
 
+export { colors as c } from "consola/utils";
+
 type ColorFn = (s: string) => string;
 
 const LEVEL_COLORS: Record<string, ColorFn> = {
@@ -57,10 +59,11 @@ const reporter: ConsolaReporter = {
     },
 };
 
-const verbose =
-    process.argv.includes("--verbose") || process.argv.includes("-v");
-
 export const logger = createConsola({
-    level: verbose ? LogLevels.verbose : LogLevels.info,
+    level: LogLevels.info,
     reporters: [reporter],
 });
+
+export function setVerbose(v: boolean) {
+    logger.level = v ? LogLevels.debug : LogLevels.info;
+}

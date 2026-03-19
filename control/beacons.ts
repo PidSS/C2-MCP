@@ -16,6 +16,7 @@ export interface BeaconConnection {
 
 export interface BeaconWSData {
     authenticated: boolean;
+    ip: string;
     beaconId?: string;
 }
 
@@ -45,13 +46,11 @@ export function registerBeacon(
         return false; // id already taken
     }
     beacons.set(id, { id, ws, info });
-    logger.info(`Beacon registered: ${id}`);
     return true;
 }
 
 export function removeBeacon(id: string): void {
     beacons.delete(id);
-    logger.info(`Beacon removed: ${id}`);
 }
 
 export function updateBeaconInfo(id: string, info: DeviceInfo): void {

@@ -7,7 +7,8 @@
         "build:control": "bun run build.ts --control",
         "build:beacon": "bun run build.ts --beacon",
         "lint": "eslint .",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "test": "bun test"
     },
     "private": true,
     "devDependencies": {
