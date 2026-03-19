@@ -10,6 +10,7 @@ export function startMcpServer(host: string, port: number) {
     Bun.serve({
         hostname: host,
         port,
+        idleTimeout: 255,
         async fetch(req) {
             const server = createMcpServer();
             const transport = new WebStandardStreamableHTTPServerTransport({
