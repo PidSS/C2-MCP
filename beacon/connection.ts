@@ -128,10 +128,13 @@ export async function connectToControl(
 
             if (req.type === "command") {
                 const { tool, args } = req;
-                logger.debug(`${tool} ${c.dim(JSON.stringify(args))}`);
+                const short_id = c.dim(`(${req.id.slice(-6)})`);
+                logger.debug(
+                    `${short_id} ${tool} ${c.dim(JSON.stringify(args))}`,
+                );
                 const result = await dispatch(req);
                 const status = result.ok ? "ok" : "error";
-                logger.info(`${tool} ${c.dim(req.id)} → ${status}`);
+                logger.info(`${short_id} ${tool} → ${status}`);
                 ws.send(JSON.stringify(result));
             }
         });

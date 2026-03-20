@@ -6,6 +6,6 @@ export interface ToolDef<T extends z.ZodRawShape = z.ZodRawShape> {
     description: string;
     /** Zod raw shape for input validation. */
     inputSchema: T;
-    /** Whether this tool requires a `device` parameter (routed to Beacon). */
-    remote: boolean;
+    /** Format a call to this tool as a human-readable string for logging. */
+    format: (args: Record<string, unknown>, colorful: boolean) => string;
 }

@@ -1,9 +1,14 @@
 import { z } from "zod";
 import type { ToolDef } from "./types.ts";
 import type { DeviceInfo } from "../lib/protocol.ts";
+import { c } from "../lib/logger.ts";
 
 export const deviceInfoTool: ToolDef = {
     name: "device_info",
+    format(_args, colorful) {
+        const colorFn = colorful ? c.dim : String;
+        return `device_info${colorFn("()")}`;
+    },
     description:
         "Collect current runtime environment info from the specified device, " +
         "including platform, architecture, OS version, hostname, and time. " +
@@ -15,7 +20,6 @@ export const deviceInfoTool: ToolDef = {
                 "Target device ID (use list_devices to discover available devices)",
             ),
     },
-    remote: true,
 };
 
 /** Collect device info. Used by both the tool and beacon auth. */

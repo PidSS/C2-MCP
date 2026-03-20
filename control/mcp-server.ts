@@ -78,15 +78,24 @@ function createMcpServer(): McpServer {
                 try {
                     // Strip `device` from args before forwarding to Beacon
                     const { device: _device, ...toolArgs } = args; // eslint-disable-line @typescript-eslint/no-unused-vars
+                    const command_id = Bun.randomUUIDv7();
+                    const short_id = c.dim(`(${command_id.slice(-6)})`);
                     logger.debug(
-                        `[${device}] ${tool.name} ${c.dim(JSON.stringify(toolArgs))}`,
+                        `[${device}] ${short_id} ${tool.format(toolArgs, true)}`,
                     );
-                    const resp = await sendCommand(device, tool.name, toolArgs);
+
+                    const resp = await sendCommand(
+                        device,
+                        tool.name,
+                        toolArgs,
+                        command_id,
+                    );
 
                     const status = resp.ok ? "ok" : "error";
                     logger.info(
-                        `[${device}] ${tool.name} ${c.dim(resp.id)} → ${status}`,
+                        `[${device}] ${short_id} ${tool.name} → ${status}`,
                     );
+
                     if (!resp.ok) {
                         return {
                             content: [

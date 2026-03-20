@@ -67,13 +67,13 @@ export function sendCommand(
     beaconId: string,
     tool: string,
     args: Record<string, unknown>,
+    id: string,
 ): Promise<CommandResponse> {
     const beacon = beacons.get(beaconId);
     if (!beacon) {
         return Promise.reject(new Error(`Device not found: ${beaconId}`));
     }
 
-    const id = Bun.randomUUIDv7();
     const request: CommandRequest = { type: "command", id, tool, args };
 
     return new Promise((resolve, reject) => {

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { homedir } from "node:os";
 import type { ToolDef } from "./types.ts";
 import { DEFAULT_SHELL_TIMEOUT_S } from "../lib/constants.ts";
+import { c } from "../lib/logger.ts";
 
 const SHELL_PRESETS: Record<string, string[]> = {
     sh: ["sh", "-c"],
@@ -24,6 +25,15 @@ function defaultCwd(): string {
 
 export const shellTool: ToolDef = {
     name: "shell",
+    format(args, colorful) {
+        const colorFn = colorful ? c.dim : String;
+        const opts: string[] = [];
+        if (args.cwd) opts.push(`cwd=${JSON.stringify(args.cwd)}`);
+        if (args.shell) opts.push(`shell=${args.shell}`);
+        if (args.timeout) opts.push(`timeout=${args.timeout}`);
+        const extra = opts.length ? `, ${opts.join(", ")}` : "";
+        return "shell" + colorFn(`(${JSON.stringify(args.command)}${extra})`);
+    },
     description:
         "Execute a shell command on the specified device. " +
         "Returns stdout, stderr, and exit code. " +
@@ -64,7 +74,6 @@ export const shellTool: ToolDef = {
             .optional()
             .describe("Command timeout in seconds (1-300). Default: 120."),
     },
-    remote: true,
 };
 
 /** Execute shell on the Beacon side. */

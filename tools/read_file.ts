@@ -1,11 +1,22 @@
 import { z } from "zod";
 import type { ToolDef } from "./types.ts";
+import { c } from "../lib/logger.ts";
 
 /** Max characters before truncation (head + tail). */
 const READFILE_MAX_CHARS = 120_000;
 
 export const readFileTool: ToolDef = {
     name: "read_file",
+    format(args, colorful) {
+        const colorFn = colorful ? c.dim : String;
+        const repr_path = JSON.stringify(args.path);
+        if (args.start_line === undefined && args.end_line === undefined) {
+            return "read_file" + colorFn(`(${repr_path})`);
+        }
+
+        const repr_lines = `[${args.start_line ?? "?"},${args.end_line ?? "?"}]`;
+        return "read_file" + colorFn(`(${repr_path}, lines=${repr_lines})`);
+    },
     description:
         `Read the contents of a file on the specified device. ` +
         `Returns line-numbered content wrapped in XML tags. ` +
@@ -19,17 +30,16 @@ export const readFileTool: ToolDef = {
             .int()
             .optional()
             .describe(
-                "Start line number (1-indexed, inclusive). Must be used together with end_line.",
+                "Start line number (1-indexed, inclusive). Must be provided together with end_line; omit both to read the whole file.",
             ),
         end_line: z
             .number()
             .int()
             .optional()
             .describe(
-                "End line number (1-indexed, inclusive). Must be used together with start_line.",
+                "End line number (1-indexed, inclusive). Must be provided together with start_line; omit both to read the whole file.",
             ),
     },
-    remote: true,
 };
 
 /**

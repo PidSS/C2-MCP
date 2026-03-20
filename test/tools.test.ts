@@ -1,7 +1,49 @@
 import { test, expect, describe } from "bun:test";
+import { deviceInfoTool } from "../tools/info.ts";
 import { executeDeviceInfo } from "../tools/info.ts";
-import { executeReadFile } from "../tools/read_file.ts";
-import { executeShell } from "../tools/shell.ts";
+import { readFileTool, executeReadFile } from "../tools/read_file.ts";
+import { shellTool, executeShell } from "../tools/shell.ts";
+
+describe("tool format", () => {
+    test("formats device_info without arguments", () => {
+        expect(deviceInfoTool.format({}, false)).toBe("device_info()");
+    });
+
+    test("formats read_file without line range", () => {
+        expect(readFileTool.format({ path: "package.json" }, false)).toBe(
+            'read_file("package.json")',
+        );
+    });
+
+    test("formats read_file with line range", () => {
+        expect(
+            readFileTool.format(
+                { path: "package.json", start_line: 2, end_line: 4 },
+                false,
+            ),
+        ).toBe('read_file("package.json", lines=[2,4])');
+    });
+
+    test("formats shell with command only", () => {
+        expect(shellTool.format({ command: "echo hello" }, false)).toBe(
+            'shell("echo hello")',
+        );
+    });
+
+    test("formats shell with optional arguments", () => {
+        expect(
+            shellTool.format(
+                {
+                    command: "ls -la",
+                    cwd: "/tmp",
+                    shell: "bash",
+                    timeout: 30,
+                },
+                false,
+            ),
+        ).toBe('shell("ls -la", cwd="/tmp", shell=bash, timeout=30)');
+    });
+});
 
 describe("executeDeviceInfo", () => {
     test("returns device info", async () => {
