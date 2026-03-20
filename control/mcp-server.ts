@@ -11,18 +11,19 @@ export function startMcpServer(host: string, port: number) {
         hostname: host,
         port,
         idleTimeout: 255,
-        async fetch(req) {
-            const server = createMcpServer();
+        async fetch(req, server) {
+            const clientIp = server.requestIP(req)?.address ?? "unknown";
+            const mcpServer = createMcpServer(clientIp);
             const transport = new WebStandardStreamableHTTPServerTransport({
                 enableJsonResponse: true,
             });
-            await server.connect(transport);
+            await mcpServer.connect(transport);
             return transport.handleRequest(req);
         },
     });
 }
 
-function createMcpServer(): McpServer {
+function createMcpServer(clientIp: string): McpServer {
     const server = new McpServer({
         name: APP_NAME,
         version: APP_VERSION,
@@ -37,6 +38,7 @@ function createMcpServer(): McpServer {
             inputSchema: {},
         },
         async () => {
+            logger.debug(`[${clientIp} -> mcp] list_devices()`);
             const beacons = getAllBeacons();
             const devices = beacons.map((b) => ({
                 id: b.id,
@@ -62,6 +64,8 @@ function createMcpServer(): McpServer {
                 inputSchema: tool.inputSchema,
             },
             async (args: Record<string, unknown>) => {
+                logger.debug(`[${clientIp} -> mcp] ${tool.name}()`);
+
                 const device = args.device as string | undefined;
                 if (!device) {
                     return {
@@ -81,7 +85,7 @@ function createMcpServer(): McpServer {
                     const command_id = Bun.randomUUIDv7();
                     const short_id = c.dim(`(${command_id.slice(-6)})`);
                     logger.debug(
-                        `[${device}] ${short_id} ${tool.format(toolArgs, true)}`,
+                        `[${clientIp} -> ${device}] ${short_id} ${tool.format(toolArgs, true)}`,
                     );
 
                     const resp = await sendCommand(
@@ -93,7 +97,7 @@ function createMcpServer(): McpServer {
 
                     const status = resp.ok ? "ok" : "error";
                     logger.info(
-                        `[${device}] ${short_id} ${tool.name} → ${status}`,
+                        `[${clientIp} <- ${device}] ${short_id} ${tool.name} → ${status}`,
                     );
 
                     if (!resp.ok) {
@@ -123,7 +127,9 @@ function createMcpServer(): McpServer {
                 } catch (err: unknown) {
                     const message =
                         err instanceof Error ? err.message : String(err);
-                    logger.info(`[${device}] ${tool.name} → error`);
+                    logger.info(
+                        `[${clientIp} <- ${device}] ${tool.name} → error`,
+                    );
                     return {
                         content: [
                             {

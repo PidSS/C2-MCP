@@ -97,7 +97,7 @@ function startControlServer(
 
             if (url.pathname === "/cert" && req.method === "GET") {
                 const ip = server.requestIP(req)?.address ?? "unknown";
-                logger.debug(`[${ip}] Certificate requested`);
+                logger.debug(`[${ip} -> ctrl] Certificate requested`);
                 return new Response(identity.cert, {
                     headers: { "Content-Type": "application/x-pem-file" },
                 });
@@ -121,7 +121,7 @@ function startControlServer(
         },
         websocket: {
             open(ws) {
-                logger.debug(`[${ws.data.ip}] WebSocket connected`);
+                logger.debug(`[${ws.data.ip} -> ctrl] WebSocket connected`);
             },
             message(ws, message) {
                 const data = ws.data!;
@@ -157,7 +157,9 @@ function startControlServer(
                         error: "Invalid auth token",
                     };
                     ws.sendText(JSON.stringify(resp));
-                    logger.warn(`[${data.ip}] Auth failed: invalid token`);
+                    logger.warn(
+                        `[${data.ip} -> ctrl] Auth failed: invalid token`,
+                    );
                     ws.close(1008, "Auth failed");
                     return;
                 }
@@ -171,7 +173,7 @@ function startControlServer(
                     };
                     ws.sendText(JSON.stringify(resp));
                     logger.warn(
-                        `[${data.ip}] Auth failed: duplicate ID ${authMsg.id}`,
+                        `[${data.ip} -> ctrl] Auth failed: duplicate ID ${authMsg.id}`,
                     );
                     ws.close(1008, "Duplicate ID");
                     return;
@@ -182,7 +184,7 @@ function startControlServer(
                 const resp: ControlMessage = { type: "auth_result", ok: true };
                 ws.sendText(JSON.stringify(resp));
                 logger.success(
-                    `[${data.ip} → ${authMsg.id}] Beacon authenticated`,
+                    `[${data.ip}=${authMsg.id}] Beacon authenticated`,
                 );
                 return;
             },
