@@ -5,6 +5,7 @@ import { generateIdentity, encodeBootstrapSecret } from "../lib/crypto.ts";
 import type { CryptoIdentity } from "../lib/crypto.ts";
 import type { AuthMessage, ControlMessage } from "../lib/protocol.ts";
 import { startMcpServer } from "./mcp-server.ts";
+import { createApprovalProvider } from "./approval-providers/index.ts";
 import {
     registerBeacon,
     removeBeacon,
@@ -28,6 +29,10 @@ const main = defineCommand({
             type: "string",
             description: "Beacon WSS listen address (host:port)",
         },
+        "approval-provider": {
+            type: "string",
+            description: "Approval provider name (e.g. telegram)",
+        },
         verbose: {
             type: "boolean",
             alias: "v",
@@ -37,6 +42,19 @@ const main = defineCommand({
     async run({ args }) {
         const cfg = await loadConfig(args, args.config);
         setVerbose(cfg.verbose);
+
+        let approvalProvider;
+        try {
+            approvalProvider = await createApprovalProvider(
+                cfg.approvalProvider,
+            );
+        } catch (error) {
+            logger.error(
+                error instanceof Error ? error.message : String(error),
+            );
+            process.exitCode = 1;
+            return;
+        }
 
         // --- Generate crypto identity ---
         logger.debug("Generating crypto identity...");
@@ -51,7 +69,7 @@ const main = defineCommand({
         const [mcpHost, mcpPort] = splitHostPort(cfg.mcpListen);
         const [ctrlHost, ctrlPort] = splitHostPort(cfg.controlListen);
 
-        startMcpServer(mcpHost, mcpPort);
+        startMcpServer(mcpHost, mcpPort, approvalProvider);
         startControlServer(identity, ctrlHost, ctrlPort);
 
         printBanner({

@@ -8,6 +8,7 @@ import {
 interface CliArgs {
     "mcp-listen"?: string;
     "control-listen"?: string;
+    "approval-provider"?: string;
     id?: string;
     "control-address"?: string;
     verbose?: boolean;
@@ -16,6 +17,7 @@ interface CliArgs {
 export interface Config {
     readonly mcpListen: string;
     readonly controlListen: string;
+    readonly approvalProvider: string | undefined;
     readonly id: string | undefined;
     readonly controlAddress: string | undefined;
     readonly bootstrapSecret: string | undefined;
@@ -69,6 +71,9 @@ export async function loadConfig(
                 str(yaml, "control_listen") ??
                 DEFAULT_CONTROL_LISTEN
             );
+        },
+        get approvalProvider() {
+            return cli["approval-provider"] ?? str(yaml, "approval_provider");
         },
         get id() {
             return cli.id ?? str(yaml, "id");

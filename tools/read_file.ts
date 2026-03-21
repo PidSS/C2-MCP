@@ -1,9 +1,7 @@
 import { z } from "zod";
 import type { ToolDef } from "./types.ts";
 import { c } from "../lib/logger.ts";
-
-/** Max characters before truncation (head + tail). */
-const READFILE_MAX_CHARS = 120_000;
+import { READFILE_MAX_CHARS } from "../lib/constants.ts";
 
 export const readFileTool: ToolDef = {
     name: "read_file",

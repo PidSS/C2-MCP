@@ -9,3 +9,11 @@ export const COMMAND_TIMEOUT_MS = 310_000; // safety net: must exceed max shell 
 export const DEFAULT_CONFIG_PATH = "./c2-mcp-config.yaml";
 export const DEFAULT_MCP_LISTEN = "localhost:4661";
 export const DEFAULT_CONTROL_LISTEN = "0.0.0.0:4662";
+
+/** Max characters before truncation (head + tail). */
+export const READFILE_MAX_CHARS = 120_000;
+
+export const TELEGRAM_APPROVAL_TIMEOUT_MS = 60_000;
+export const TELEGRAM_APPROVE_CALLBACK_PREFIX = "approve:";
+export const TELEGRAM_REJECT_CALLBACK_PREFIX = "reject:";
+export const TELEGRAM_CALLBACK_DATA_MAX_LENGTH = 64;

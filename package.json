@@ -6,7 +6,7 @@
         "build": "bun run build.ts",
         "build:control": "bun run build.ts --control",
         "build:beacon": "bun run build.ts --beacon",
-        "lint": "eslint .",
+        "lint": "bunx tsc --noEmit && eslint .",
         "format": "prettier --write .",
         "test": "bun test"
     },
@@ -21,13 +21,14 @@
         "prettier": "^3.8.1"
     },
     "peerDependencies": {
-        "typescript": "^5"
+        "typescript": "^5.9.3"
     },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.27.1",
         "@peculiar/x509": "^1.14.3",
         "citty": "^0.2.1",
         "consola": "^3.4.2",
+        "grammy": "^1.41.1",
         "zod": "^4.3.6"
     }
 }

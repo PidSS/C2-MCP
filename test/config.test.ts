@@ -25,6 +25,7 @@ describe("loadConfig", () => {
         const cfg = await loadConfig({});
         expect(cfg.mcpListen).toBe(DEFAULT_MCP_LISTEN);
         expect(cfg.controlListen).toBe(DEFAULT_CONTROL_LISTEN);
+        expect(cfg.approvalProvider).toBeUndefined();
         expect(cfg.id).toBeUndefined();
         expect(cfg.controlAddress).toBeUndefined();
         expect(cfg.bootstrapSecret).toBeUndefined();
@@ -35,6 +36,7 @@ describe("loadConfig", () => {
         writeTempYaml(`
 mcp_listen: "0.0.0.0:9000"
 control_listen: "0.0.0.0:9001"
+approval_provider: "telegram"
 id: "yaml-id"
 control_address: "10.0.0.1:9001"
 bootstrap_secret: "yaml-secret"
@@ -43,6 +45,7 @@ verbose: true
         const cfg = await loadConfig({}, TMP_CONFIG);
         expect(cfg.mcpListen).toBe("0.0.0.0:9000");
         expect(cfg.controlListen).toBe("0.0.0.0:9001");
+        expect(cfg.approvalProvider).toBe("telegram");
         expect(cfg.id).toBe("yaml-id");
         expect(cfg.controlAddress).toBe("10.0.0.1:9001");
         expect(cfg.bootstrapSecret).toBe("yaml-secret");
@@ -53,6 +56,7 @@ verbose: true
         writeTempYaml(`
 mcp_listen: "0.0.0.0:9000"
 control_listen: "0.0.0.0:9001"
+approval_provider: "telegram"
 id: "yaml-id"
 control_address: "127.1:9001"
 verbose: true
@@ -61,6 +65,7 @@ verbose: true
             {
                 "mcp-listen": "localhost:1234",
                 "control-listen": "localhost:5678",
+                "approval-provider": "",
                 id: "cli-id",
                 "control-address": "192.168.1.1:4662",
                 verbose: false,
@@ -69,6 +74,7 @@ verbose: true
         );
         expect(cfg.mcpListen).toBe("localhost:1234");
         expect(cfg.controlListen).toBe("localhost:5678");
+        expect(cfg.approvalProvider).toBe("");
         expect(cfg.id).toBe("cli-id");
         expect(cfg.controlAddress).toBe("192.168.1.1:4662");
         // CLI false explicitly overrides YAML true
